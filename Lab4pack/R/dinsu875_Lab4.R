@@ -1,3 +1,32 @@
+#' A Reference Class for computing Linear Regression using OLS
+#'
+#'
+#' This class has a varied methods.
+#' 
+#' Package Description 
+#' 
+#' 
+#' 
+#' @param formula A Formula.
+#' 
+#' @param data A Data frame.
+#'
+#' @field reg_Coef to find regression coefficients
+#' @field fit_Val for the fitted values
+#' @field res for residuals
+#' @field dof for degrees of freedom
+#' @field Sigma_square for residual variance
+#' @field Var_Beta for Variance of regression coefficients
+#' @field t_Beta for t-values for each coefficient
+#' @field pvalue for p-values for each coefficient
+#' @field parse to parse the input data
+#' @field stand_res for standardised residuals for plot2
+#' @field variance for variance values 
+#' @return nothing
+#'
+
+
+
 linreg <- setRefClass( "linreg",
                        
                        fields = list(
