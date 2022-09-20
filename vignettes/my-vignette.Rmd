@@ -1,0 +1,243 @@
+---
+title: "Linear Regression"
+author: "Dinesh and Mahesh"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{my-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+This vignette summarizes functions of LR package to fit the linear regression model where computations are done using OLS (Ordinary Least Squares) and gives examples on how to use them.
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# RC implementation
+
+## Included methods
+
+These methods are included to provide analysis on data.
+    print()   prints out the coefficients and coefficient names
+    plot()    plots two plots using ggplot2 with LiU_theme
+    resid()   returns the vector of residuals e
+    pred()    returns the predicted values y_hat
+    coef()    returns the coefficients as a named vector
+
+```{r echo=FALSE}
+linreg <- setRefClass("linreg",
+                      fields = list(formula="formula",
+                                    data="data.frame",
+                                    m_X = "matrix",
+                                    m_Y="matrix",
+                                    Xt="matrix",
+                                    XtX="matrix",
+                                    betaestimates = "matrix",
+                                    yfit="matrix",
+                                    residual="matrix",
+                                    nparameters = "integer",
+                                    dof="integer",
+                                    residualt = "matrix",
+                                    residualvariance="numeric",
+                                    residualstd = "numeric",
+                                    betavariance = "matrix",
+                                    bb = "numeric",
+                                    tvalues="matrix",
+                                    pvalues= "matrix",
+                                    standardizedresiduals ="matrix",
+                                    sqrtstresiduals = "matrix",
+                                    export_formula = "formula",
+                                    export_data = "character"
+                      ),
+                      methods = list(
+                        initialize = function(formula, data){
+                          #Independent and dependent variables
+                          m_X <<- model.matrix(formula, data)
+                          m_Y <<- as.matrix(data[all.vars(formula)[1]])
+                          # Transpose matrix X, and multiply + solve
+                          Xt <<- t(m_X)
+                          XtX <<- solve(Xt %*% m_X)
+                          betaestimates <<- XtX %*% Xt %*% m_Y
+                          # Estimate y
+                          yfit <<- m_X %*% betaestimates
+                          # Estimate residuals
+                          residual <<- m_Y - yfit
+                          # Determine degrees of freedom
+                          nparameters <<- length(betaestimates)
+                          dof <<- length(m_Y) - nparameters
+                          # Variances
+                          residualt <<- t(residual)
+                          residualvariance <<- as.numeric((residualt %*% residual) / dof)
+                          residualstd <<- sqrt(residualvariance)
+                          betavariance <<- residualvariance * XtX
+                          bb <<- diag(betavariance)
+                          # t-values
+                          tvalues <<- betaestimates/sqrt(bb)
+                          # p-values
+                          pvalues <<- 2 * pt(abs(tvalues), dof, lower.tail = FALSE)
+                          # Standardized residuals for summary
+                          standardizedresiduals <<- residual / sd(residual)
+                          sqrtstresiduals <<- sqrt(abs(standardizedresiduals))
+                          
+                          # saving names
+                          export_formula <<- formula
+                          export_data <<- deparse(substitute(data))
+                        },
+                        
+                        print = function(){
+                          "Prints information about model"
+                          cat(paste("linreg(formula = ", format(export_formula), ", data = ", export_data , ")\n\n ", sep = ""))
+                          #cat(paste("linreg(formula = ", format(l_formula), ", data = ", l_data_set_name, ")\n\n", sep = ""))
+                         # setNames(round(betaestimates[1:nrow(betaestimates)],3),rownames(betaestimates))
+                          
+                          table = setNames(data.frame(matrix(ncol = length(betaestimates), nrow = 0)), rownames(betaestimates))
+                          for (i in 1:length(betaestimates)) {
+                            table[1,i] = round(betaestimates[i], 3)
+                          }
+                          myPrint(table)
+                          
+                          },
+                        resid = function(){
+                          return(as.vector(residual))
+                        },
+                        pred = function(){
+                          return(yfit)
+                        },
+                        coef = function(){
+                          vec <- as.vector(betaestimates)
+                          names(vec) <- colnames(m_X)
+                          return(vec)
+                        },
+                        
+                        plot = function(){
+                          library(ggplot2)
+                          #library(ggThemeAssist)
+                          theme <-  theme(
+                            plot.background = element_rect(color = "black"),
+                            panel.background = element_rect(fill = "white", color = NA),
+                            panel.grid.major = element_line(color = "#1c1c19", size = 0.5),
+                            panel.grid.major.x = element_blank(),
+                            panel.grid.minor.x = element_blank(),
+                            panel.grid.major.y = element_blank(),
+                            panel.grid.minor.y = element_blank(),
+                            axis.line = element_line(color = "#1c1c19", size = 0.5),
+                            axis.text = element_text(color = "#1c1c19", size = 6),
+                            axis.ticks = element_line(color = "#38ccd6", size = 0.5),
+                            axis.title.x = element_text(color = "#38ccd6", size = 14,
+                                                        face = "bold"),
+                            axis.title.y = element_text(color = "#38ccd6", size = 14,
+                                                        face = "bold"),
+                            panel.grid.minor = element_line(color = "#1c1c19", size = 5),
+                            plot.caption = element_text(size = 10, hjust =
+                                                          0.5),
+                            plot.margin = unit(c(1.2, 1.2, 1.2, 1.2), "cm"),
+                            axis.text.x = element_text(size = 8),
+                            axis.text.y = element_text(size = 8)
+                          )
+                          
+                          title <- paste("Fitted values linreg(", formula[2]," ", formula[1], " ",
+                                         formula[3], ")")
+                          
+                          plot1 <- ggplot(data.frame(yfit, residual), aes(y=residual, x=yfit)) + geom_point(shape=21, size=3, colour="black", fill="white")
+                          plot1 <- plot1 + theme
+                          
+                          plot1 <- plot1 + stat_summary(fun.y=median, colour="red", geom="line", aes(group = 1))
+                          plot1 <- plot1 + ggtitle("Residuals vs fitted") + xlab(paste("Fitted values \n lm(Petal.Length ~ Species)"))
+                          plot2 <- ggplot(data.frame(yfit, sqrtstresiduals), aes(y=sqrtstresiduals, x=yfit)) + geom_point(alpha = 0.6, shape=21, size=3, colour="black", fill="white")
+                          plot2 <- plot2 + theme
+                          plot2 <- plot2 + stat_summary(fun.y=median, colour="red", geom="line", aes(group = 1))
+                          plot2 <- plot2 + ggtitle("Scale-Location") + xlab(paste("Fitted values \n lm(Petal.Length ~ Species)"))
+                          plot2 <- plot2 + scale_x_continuous(breaks = seq(0.0, 1.5, by= 0.5))
+                          
+                          plotlist <- list(plot1, plot2)
+                          return(plotlist)
+                        },
+                        summary = function(){
+                          "Prints the summary of linear regression model."
+                          cat(paste("linreg(formula = ", format(export_formula), ", data = ", export_data, ") :\n\n ", sep = ""))
+                          x <- setNames(as.data.frame(cbind(betaestimates,as.matrix(sqrt(bb)),tvalues, formatC(pvalues, format = "e", digits = 2), p_star_cal(pvalues))), c("Coefficients","Standard error","t values", "p values", ""))
+                          myPrint(x)
+                          cat(paste("\n\nResidual standard error: ", residualstd, " on ", dof, " degrees of freedom: ", sep = ""))
+                        }
+                      ))
+
+
+myPrint = function(x, stripoff = FALSE) {
+  print(x)
+}
+
+p_star_cal = function(p_value) {
+  x <- ifelse(p_value > 0.1, " ",
+              (ifelse(p_value > 0.05, " . ",
+                      (ifelse(p_value > 0.01, "*",
+                              (ifelse(p_value > 0.001, "**","***")))))))
+  return(x)
+}
+
+```
+## Data
+
+To explore the basic functions of LR, we'll use ``` iris ```.This is perhaps the best known database to be found in the pattern recognition literature. The data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant. One class is linearly separable from the other 2; the latter are NOT linearly separable from each other. you can see first 10 rows below:
+
+```{r,echo=FALSE}
+data(iris)
+head(iris,10)
+```           
+
+## print()
+
+Prints out the coefficients and coefficient names, similar as done by the lm class.
+
+```{r,echo=FALSE}
+mod_object <- linreg(formula=Petal.Length~Species, data = iris)
+mod_object$print()
+```
+
+## plot()
+
+This function plots two plots using ggplot2 with theme.
+
+```{r fig.height=5, fig.width=5, message=FALSE, warning=FALSE, paged.print=TRUE, r,echo=FALSE}
+mod_object$plot()
+```
+
+## resid()
+This function returns the vector of residuals.
+```{r,echo=FALSE}
+mod_object$resid()
+```
+
+## pred()
+It returns the  predicted values of yfit.
+```{r,echo=FALSE}
+mod_object$pred()
+```
+
+## coef()
+
+This function returns the cofficients as a named vector
+```{r,echo=FALSE}
+mod_object$coef()
+```
+
+## summary()
+
+This function returns a similar printout as printed for lm objects, but only need to present the coefficients with their standard error, t-value and p-value as well as the estimate of sigma and the degrees
+of freedom in the model.
+
+```{r,echo=FALSE}
+mod_object$summary()
+```
+
+## Appendix
+
+```{r ref.label=knitr::all_labels(), echo = T, eval = F}
+
+```
+
+
+
+
