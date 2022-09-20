@@ -57,6 +57,7 @@ linreg <- setRefClass("linreg",
                           # Transpose matrix X, and multiply + solve
                           Xt <<- t(m_X)
                           XtX <<- solve(Xt %*% m_X)
+                          #Regression coefficients
                           betaestimates <<- XtX %*% Xt %*% m_Y
                           # Estimate y
                           yfit <<- m_X %*% betaestimates
@@ -79,7 +80,7 @@ linreg <- setRefClass("linreg",
                           standardizedresiduals <<- residual / sd(residual)
                           sqrtstresiduals <<- sqrt(abs(standardizedresiduals))
                           
-                          # saving names
+                          #Assign formula and data
                           export_formula <<- formula
                           export_data <<- deparse(substitute(data))
                         },
@@ -95,9 +96,11 @@ linreg <- setRefClass("linreg",
                         resid = function(){
                           return(as.vector(residual))
                         },
+                        #predicted values method
                         pred = function(){
                           return(yfit)
                         },
+                        #regression coefficients method
                         coef = function(){
                           vec <- as.vector(betaestimates)
                           names(vec) <- colnames(m_X)
@@ -130,23 +133,22 @@ linreg <- setRefClass("linreg",
                             axis.text.y = element_text(size = 8)
                           )
                           
-                          title <- paste("Fitted values linreg(", formula[2]," ", formula[1], " ",
-                                         formula[3], ")")
-                          
                           plot1 <- ggplot(data.frame(yfit, residual), aes(y=residual, x=yfit)) + geom_point(shape=21, size=3, colour="black", fill="white")
                           plot1 <- plot1 + theme
                           
                           plot1 <- plot1 + stat_summary(fun.y=median, colour="red", geom="line", aes(group = 1))
-                          plot1 <- plot1 + ggtitle("Residuals vs fitted") + xlab(paste("Fitted values \n linreg(Petal.Length ~ Species)"))
+                          plot1 <- plot1 + ggtitle("Residuals vs fitted") + xlab(paste("Fitted Values \n", "linreg(", format(export_formula), ")"))
                           plot2 <- ggplot(data.frame(yfit, sqrtstresiduals), aes(y=sqrtstresiduals, x=yfit)) + geom_point(alpha = 0.6, shape=21, size=3, colour="black", fill="white")
                           plot2 <- plot2 + theme
                           plot2 <- plot2 + stat_summary(fun.y=median, colour="red", geom="line", aes(group = 1))
-                          plot2 <- plot2 + ggtitle("Scale-Location") + xlab(paste("Fitted values \n linreg(Petal.Length ~ Species)"))
+                          plot2 <- plot2 + ggtitle("Scale-Location") + xlab(paste("Fitted Values \n", "linreg(", format(export_formula), ")"))
                           plot2 <- plot2 + scale_x_continuous(breaks = seq(0.0, 1.5, by= 0.5))
                           
                           plotlist <- list(plot1, plot2)
                           return(plotlist)
                         },
+                        
+                        #summary method
                         summary = function(){
                           "Prints the summary of linear regression model."
                           cat(paste("linreg(formula = ", format(export_formula), ", data = ", export_data, ") :\n\n ", sep = ""))
