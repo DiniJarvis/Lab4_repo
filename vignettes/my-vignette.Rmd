@@ -22,16 +22,18 @@ options(rmarkdown.html_vignette.check_title = FALSE) # suppress title check
 
 ```
 
+
 # RC implementation
 
 ## Included methods
 
 These methods are included to provide analysis on data.
-    print()   prints out the coefficients and coefficient names
-    plot()    plots two plots using ggplot2 with LiU_theme
-    resid()   returns the vector of residuals e
-    pred()    returns the predicted values y_hat
-    coef()    returns the coefficients as a named vector
+
+    * print()   prints out the coefficients and coefficient names
+    * plot()    plots two plots using ggplot2 with Liu theme
+    * resid()   returns the vector of residuals 
+    * pred()    returns the predicted values yfit
+    * coef()    returns the coefficients as a named vector
 
 ```{r echo=FALSE}
 linreg <- setRefClass("linreg",
@@ -139,18 +141,17 @@ linreg <- setRefClass("linreg",
                             axis.text.y = element_text(size = 8)
                           )
                           
-                          title <- paste("Fitted values linreg(", formula[2]," ", formula[1], " ",
-                                         formula[3], ")")
+                          title <- paste("Fitted values linreg(", formula[2]," ", formula[1], " ",formula[3], ")")
                           
                           plot1 <- ggplot(data.frame(yfit, residual), aes(y=residual, x=yfit)) + geom_point(shape=21, size=3, colour="black", fill="white")
                           plot1 <- plot1 + theme
                           
                           plot1 <- plot1 + stat_summary(fun.y=median, colour="red", geom="line", aes(group = 1))
-                          plot1 <- plot1 + ggtitle("Residuals vs fitted") + xlab(paste("Fitted values \n lm(Petal.Length ~ Species)"))
+                          plot1 <- plot1 + ggtitle("Residuals vs fitted") + xlab(paste("Fitted values \n linreg(Petal.Length ~ Species)"))
                           plot2 <- ggplot(data.frame(yfit, sqrtstresiduals), aes(y=sqrtstresiduals, x=yfit)) + geom_point(alpha = 0.6, shape=21, size=3, colour="black", fill="white")
                           plot2 <- plot2 + theme
                           plot2 <- plot2 + stat_summary(fun.y=median, colour="red", geom="line", aes(group = 1))
-                          plot2 <- plot2 + ggtitle("Scale-Location") + xlab(paste("Fitted values \n lm(Petal.Length ~ Species)"))
+                          plot2 <- plot2 + ggtitle("Scale-Location") + xlab(paste("Fitted values \n linreg(Petal.Length ~ Species)"))
                           plot2 <- plot2 + scale_x_continuous(breaks = seq(0.0, 1.5, by= 0.5))
                           
                           plotlist <- list(plot1, plot2)
@@ -179,9 +180,10 @@ p_star_cal = function(p_value) {
 }
 
 ```
+
 ## Data
 
-To explore the basic functions of LR, we'll use ``` iris ```.This is perhaps the best known database to be found in the pattern recognition literature. The data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant. One class is linearly separable from the other 2; the latter are NOT linearly separable from each other. you can see first 10 rows below:
+To explore the basic functions of LR, we'll use ``` iris ```.This is perhaps the best known database to be found in the pattern recognition literature. The data set contains 3 classes of 50 instances each, where each class refers to a type of iris plant. One class is linearly separable from the other 2; the latter are not linearly separable from each other. you can see first 10 rows below:
 
 ```{r,echo=FALSE}
 data(iris)
@@ -206,13 +208,17 @@ mod_object$plot()
 ```
 
 ## resid()
+
 This function returns the vector of residuals.
+
 ```{r,echo=FALSE}
 mod_object$resid()
 ```
 
 ## pred()
+
 It returns the  predicted values of yfit.
+
 ```{r,echo=FALSE}
 mod_object$pred()
 ```
@@ -220,6 +226,7 @@ mod_object$pred()
 ## coef()
 
 This function returns the cofficients as a named vector
+
 ```{r,echo=FALSE}
 mod_object$coef()
 ```
