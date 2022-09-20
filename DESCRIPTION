@@ -10,6 +10,6 @@ License: GPL-2
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.0
-Suggests: 
+Suggests:methods
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
