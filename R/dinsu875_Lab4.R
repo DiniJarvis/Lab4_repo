@@ -20,8 +20,10 @@
 #' @field standardizedresiduals, standardized residuals
 #' @field sqrtresiduals, the square root of standardizedresiduals
 #' @return empty
-#' @importFrom ggplot2 theme_linedraw theme element_blank element_text stat_summary ggtitle xlab scale_x_continuous
 #' @export linreg
+#' @import methods
+#' @importFrom ggplot2 theme_linedraw theme element_blank element_text stat_summary ggtitle xlab scale_x_continuous
+
 
 linreg <- setRefClass("linreg",
                       fields = list(formula="formula",
