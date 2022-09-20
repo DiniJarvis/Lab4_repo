@@ -59,8 +59,6 @@ Create a linreg object
 \section{Methods}{
 
 \describe{
-\item{\code{print()}}{Prints information about model}
-
 \item{\code{summary()}}{Prints the summary of linear regression model.}
 }}
 

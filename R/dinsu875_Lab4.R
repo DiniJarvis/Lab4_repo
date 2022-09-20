@@ -84,19 +84,14 @@ linreg <- setRefClass("linreg",
                           export_data <<- deparse(substitute(data))
                         },
                         
-                        print = function(){
-                          "Prints information about model"
-                          cat(paste("linreg(formula = ", format(export_formula), ", data = ", export_data , ")\n\n ", sep = ""))
-                          #cat(paste("linreg(formula = ", format(l_formula), ", data = ", l_data_set_name, ")\n\n", sep = ""))
-                         # setNames(round(betaestimates[1:nrow(betaestimates)],3),rownames(betaestimates))
-                          
-                          table = setNames(data.frame(matrix(ncol = length(betaestimates), nrow = 0)), rownames(betaestimates))
-                          for (i in 1:length(betaestimates)) {
-                            table[1,i] = round(betaestimates[i], 3)
-                          }
-                          myPrint(table)
-                          
-                          },
+                        print = function() {
+                          cat(paste("Call: \n"))
+                          cat(paste("linreg(formula = ",format(export_formula), ", data = ", export_data, ")\n\n", sep = ""))
+                          cat(paste("Coefficients:\n"))
+                          coef <- structure(as.vector(betaestimates), names= row.names(betaestimates))
+                          myPrint(coef)
+                        },
+                        
                         resid = function(){
                           return(as.vector(residual))
                         },

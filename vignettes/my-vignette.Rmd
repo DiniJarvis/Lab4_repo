@@ -2,6 +2,10 @@
 title: "Linear Regression"
 author: "Dinesh and Mahesh"
 output: rmarkdown::html_vignette
+
+#knit: (function(input, ...) {rmarkdown::render(input, output_file="D:\Linkoping University\Year1\Sem1\Period 1\Lab4_repo\vignettes\LR.html")})
+
+#render pdf - pdf_document
 vignette: >
   %\VignetteIndexEntry{my-vignette}
   %\VignetteEngine{knitr::rmarkdown}
@@ -9,11 +13,13 @@ vignette: >
 ---
 This vignette summarizes functions of LR package to fit the linear regression model where computations are done using OLS (Ordinary Least Squares) and gives examples on how to use them.
 
-```{r, include = FALSE}
+```{r, include = FALSE, warning=FALSE, echo=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+options(rmarkdown.html_vignette.check_title = FALSE) # suppress title check
+
 ```
 
 # RC implementation
@@ -87,19 +93,14 @@ linreg <- setRefClass("linreg",
                           export_data <<- deparse(substitute(data))
                         },
                         
-                        print = function(){
-                          "Prints information about model"
-                          cat(paste("linreg(formula = ", format(export_formula), ", data = ", export_data , ")\n\n ", sep = ""))
-                          #cat(paste("linreg(formula = ", format(l_formula), ", data = ", l_data_set_name, ")\n\n", sep = ""))
-                         # setNames(round(betaestimates[1:nrow(betaestimates)],3),rownames(betaestimates))
-                          
-                          table = setNames(data.frame(matrix(ncol = length(betaestimates), nrow = 0)), rownames(betaestimates))
-                          for (i in 1:length(betaestimates)) {
-                            table[1,i] = round(betaestimates[i], 3)
-                          }
-                          myPrint(table)
-                          
-                          },
+                         print = function() {
+                          cat(paste("Call: \n"))
+                          cat(paste("linreg(formula = ",format(export_formula), ", data = ", export_data, ")\n\n", sep = ""))
+                          cat(paste("Coefficients:\n"))
+                          coef <- structure(as.vector(betaestimates), names= row.names(betaestimates))
+                          myPrint(coef)
+                        },
+                        
                         resid = function(){
                           return(as.vector(residual))
                         },
@@ -232,7 +233,7 @@ of freedom in the model.
 mod_object$summary()
 ```
 
-## Appendix
+## Code
 
 ```{r ref.label=knitr::all_labels(), echo = T, eval = F}
 
