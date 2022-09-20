@@ -23,8 +23,10 @@
 #' @field stand_res for standardised residuals for plot2
 #' @field variance for variance values 
 #' @return nothing
-#'
-
+#' @import methods
+#' 
+#' @exportClass linreg
+#' @export linreg 
 
 
 linreg <- setRefClass( "linreg",
@@ -87,7 +89,11 @@ linreg <- setRefClass( "linreg",
                          print = function(){
                            "Prints information about model"
                            cat(paste("linreg(formula = ", format(formula), ", data = ", parse , ")\n\n ", sep = ""))
-                           setNames(round(regco[1:nrow(reg_Coef)],2),rownames(reg_Coef))
+                           
+                           #linreg\\(formula = Petal\\.Length ~ Sepal\\.Width \\+ Sepal\\.Length, data = iris\\)
+                           #"linreg\(formula = Petal\.Length ~ Sepal\.Width \+ Sepal\.Length, data = \)\\n\\n "
+                           
+                           setNames(round(reg_Coef[1:nrow(reg_Coef)],2),rownames(reg_Coef))
                          },
                          #vector of residuals e
                          resid = function(){
