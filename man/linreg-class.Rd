@@ -4,61 +4,45 @@
 \name{linreg-class}
 \alias{linreg-class}
 \alias{linreg}
-\title{Create a linreg object}
+\title{A RC class used to compute the Linear Regression using OLS}
 \arguments{
-\item{formula}{formula for linear model}
+\item{formula}{A Formula.}
 
-\item{data}{the dataset provided}
+\item{data}{A Data frame.}
 }
 \value{
-empty
+nothing
 }
 \description{
-Create a linreg object
+This class contains various methods.
+}
+\details{
+Package Description
 }
 \section{Fields}{
 
 \describe{
-\item{\code{formula,}}{formla for the linear model}
+\item{\code{reg_Coef}}{to find regression coefficients}
 
-\item{\code{data,}}{the dataset provided}
+\item{\code{fit_Val}}{for the fitted values}
 
-\item{\code{m_X,}}{the matrix of explanatory variables}
+\item{\code{res}}{for residuals}
 
-\item{\code{m_Y,}}{the matrix of dependent variable}
+\item{\code{dof}}{for degrees of freedom}
 
-\item{\code{X_t,}}{transpose of m_X}
+\item{\code{Sigma_square}}{for residual variance}
 
-\item{\code{XtX,}}{inverse of matrix multiplication of m_X and X_t}
+\item{\code{Var_Beta}}{for Variance of regression coefficients}
 
-\item{\code{betaestimates,}}{estimates of the parameters}
+\item{\code{t_Beta}}{for t-values for each coefficient}
 
-\item{\code{yfit,}}{estimated y values}
+\item{\code{pvalue}}{for p-values for each coefficient}
 
-\item{\code{residual,}}{residuals computed by subtracting yfit from actual y values}
+\item{\code{parse}}{to parse the input data}
 
-\item{\code{nparameters,}}{number of parameters}
+\item{\code{stand_res}}{for standardised residuals for plot2}
 
-\item{\code{residualvariance,}}{variance of the residuals}
-
-\item{\code{residualstd,}}{standard deviation of residuals}
-
-\item{\code{betavariance,}}{variance of beta estimates}
-
-\item{\code{bb,}}{diagonal of betavariance matrix}
-
-\item{\code{tvalues,}}{comptued t values per parameter}
-
-\item{\code{pvalues,}}{pvalues computed according to tvalues and pt function}
-
-\item{\code{standardizedresiduals,}}{standardized residuals}
-
-\item{\code{sqrtresiduals,}}{the square root of standardizedresiduals}
+\item{\code{variance}}{for variance values}
 }}
 
-\section{Methods}{
-
-\describe{
-\item{\code{summary()}}{Prints the summary of linear regression model.}
-}}
 

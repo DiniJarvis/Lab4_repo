@@ -1,187 +1,174 @@
-#' Create a linreg object
-#' @param formula formula for linear model
-#' @param data the dataset provided
-#' @field formula, formla for the linear model
-#' @field data, the dataset provided
-#' @field m_X, the matrix of explanatory variables
-#' @field m_Y, the matrix of dependent variable
-#' @field X_t, transpose of m_X
-#' @field XtX, inverse of matrix multiplication of m_X and X_t
-#' @field betaestimates, estimates of the parameters
-#' @field yfit, estimated y values
-#' @field residual, residuals computed by subtracting yfit from actual y values
-#' @field nparameters, number of parameters
-#' @field residualvariance, variance of the residuals
-#' @field residualstd, standard deviation of residuals
-#' @field betavariance, variance of beta estimates
-#' @field bb, diagonal of betavariance matrix
-#' @field tvalues, comptued t values per parameter
-#' @field pvalues, pvalues computed according to tvalues and pt function
-#' @field standardizedresiduals, standardized residuals
-#' @field sqrtresiduals, the square root of standardizedresiduals
-#' @return empty
-#' @export linreg
+#' A RC class used to compute the Linear Regression using OLS
+#'
+#' This class contains various methods.
+#' 
+#' Package Description 
+#' 
+#' 
+#' 
+#' @param formula A Formula.
+#' 
+#' @param data A Data frame.
+#'
+#' @field reg_Coef to find regression coefficients
+#' @field fit_Val for the fitted values
+#' @field res for residuals
+#' @field dof for degrees of freedom
+#' @field Sigma_square for residual variance
+#' @field Var_Beta for Variance of regression coefficients
+#' @field t_Beta for t-values for each coefficient
+#' @field pvalue for p-values for each coefficient
+#' @field parse to parse the input data
+#' @field stand_res for standardised residuals for plot2
+#' @field variance for variance values 
+#' @return nothing
 #' @import methods
+#' @exportClass linreg
+#' @export linreg 
 #' @importFrom ggplot2 theme_linedraw theme element_blank element_text stat_summary ggtitle xlab scale_x_continuous
 
 
-linreg <- setRefClass("linreg",
-                      fields = list(formula="formula",
-                                    data="data.frame",
-                                    m_X = "matrix",
-                                    m_Y="matrix",
-                                    Xt="matrix",
-                                    XtX="matrix",
-                                    betaestimates = "matrix",
-                                    yfit="matrix",
-                                    residual="matrix",
-                                    nparameters = "integer",
-                                    dof="integer",
-                                    residualt = "matrix",
-                                    residualvariance="numeric",
-                                    residualstd = "numeric",
-                                    betavariance = "matrix",
-                                    bb = "numeric",
-                                    tvalues="matrix",
-                                    pvalues= "matrix",
-                                    standardizedresiduals ="matrix",
-                                    sqrtstresiduals = "matrix",
-                                    export_formula = "formula",
-                                    export_data = "character"
-                      ),
-                      methods = list(
-                        initialize = function(formula, data){
-                          #Independent and dependent variables
-                          m_X <<- model.matrix(formula, data)
-                          m_Y <<- as.matrix(data[all.vars(formula)[1]])
-                          # Transpose matrix X, and multiply + solve
-                          Xt <<- t(m_X)
-                          XtX <<- solve(Xt %*% m_X)
-                          #Regression coefficients
-                          betaestimates <<- XtX %*% Xt %*% m_Y
-                          # Estimate y
-                          yfit <<- m_X %*% betaestimates
-                          # Estimate residuals
-                          residual <<- m_Y - yfit
-                          # Determine degrees of freedom
-                          nparameters <<- length(betaestimates)
-                          dof <<- length(m_Y) - nparameters
-                          # Variances
-                          residualt <<- t(residual)
-                          residualvariance <<- as.numeric((residualt %*% residual) / dof)
-                          residualstd <<- sqrt(residualvariance)
-                          betavariance <<- residualvariance * XtX
-                          bb <<- diag(betavariance)
-                          # t-values
-                          tvalues <<- betaestimates/sqrt(bb)
-                          # p-values
-                          pvalues <<- 2 * pt(abs(tvalues), dof, lower.tail = FALSE)
-                          # Standardized residuals for summary
-                          standardizedresiduals <<- residual / sd(residual)
-                          sqrtstresiduals <<- sqrt(abs(standardizedresiduals))
-                          
-                          #Assign formula and data
-                          export_formula <<- formula
-                          export_data <<- deparse(substitute(data))
-                        },
-                        
-                        print = function() {
-                          cat(paste("Call: \n"))
-                          cat(paste("linreg(formula = ",format(export_formula), ", data = ", export_data, ")\n\n", sep = ""))
-                          cat(paste("Coefficients:\n"))
-                          coef <- structure(as.vector(betaestimates), names= row.names(betaestimates))
-                          myPrint(coef)
-                        },
-                        
-                        resid = function(){
-                          return(as.vector(residual))
-                        },
-                        #predicted values method
-                        pred = function(){
-                          return(yfit)
-                        },
-                        #regression coefficients method
-                        coef = function(){
-                          vec <- as.vector(betaestimates)
-                          names(vec) <- colnames(m_X)
-                          return(vec)
-                        },
-                        
-                        plot = function(){
-                          library(ggplot2)
-                          library(ggThemeAssist)
-                          theme <-  theme(
-                            plot.background = element_rect(color = "black"),
-                            panel.background = element_rect(fill = "white", color = NA),
-                            panel.grid.major = element_line(color = "#1c1c19", size = 0.5),
-                            panel.grid.major.x = element_blank(),
-                            panel.grid.minor.x = element_blank(),
-                            panel.grid.major.y = element_blank(),
-                            panel.grid.minor.y = element_blank(),
-                            axis.line = element_line(color = "#1c1c19", size = 0.5),
-                            axis.text = element_text(color = "#1c1c19", size = 6),
-                            axis.ticks = element_line(color = "#38ccd6", size = 0.5),
-                            axis.title.x = element_text(color = "#38ccd6", size = 14,
-                                                        face = "bold"),
-                            axis.title.y = element_text(color = "#38ccd6", size = 14,
-                                                        face = "bold"),
-                            panel.grid.minor = element_line(color = "#1c1c19", size = 5),
-                            plot.caption = element_text(size = 10, hjust =
-                                                          0.5),
-                            plot.margin = unit(c(1.2, 1.2, 1.2, 1.2), "cm"),
-                            axis.text.x = element_text(size = 8),
-                            axis.text.y = element_text(size = 8)
-                          )
-                          
-                          plot1 <- ggplot(data.frame(yfit, residual), aes(y=residual, x=yfit)) + geom_point(shape=21, size=3, colour="black", fill="white")
-                          plot1 <- plot1 + theme
-                          
-                          plot1 <- plot1 + stat_summary(fun.y=median, colour="red", geom="line", aes(group = 1))
-                          plot1 <- plot1 + ggtitle("Residuals vs fitted") + xlab(paste("Fitted Values \n", "linreg(", format(export_formula), ")"))
-                          plot2 <- ggplot(data.frame(yfit, sqrtstresiduals), aes(y=sqrtstresiduals, x=yfit)) + geom_point(alpha = 0.6, shape=21, size=3, colour="black", fill="white")
-                          plot2 <- plot2 + theme
-                          plot2 <- plot2 + stat_summary(fun.y=median, colour="red", geom="line", aes(group = 1))
-                          plot2 <- plot2 + ggtitle("Scale-Location") + xlab(paste("Fitted Values \n", "linreg(", format(export_formula), ")"))
-                          plot2 <- plot2 + scale_x_continuous(breaks = seq(0.0, 1.5, by= 0.5))
-                          
-                          plotlist <- list(plot1, plot2)
-                          return(plotlist)
-                        },
-                        
-                        #summary method
-                        summary = function(){
-                          "Prints the summary of linear regression model."
-                          cat(paste("linreg(formula = ", format(export_formula), ", data = ", export_data, ") :\n\n ", sep = ""))
-                          x <- setNames(as.data.frame(cbind(betaestimates,as.matrix(sqrt(bb)),tvalues, formatC(pvalues, format = "e", digits = 2), p_star_cal(pvalues))), c("Coefficients","Standard error","t values", "p values", ""))
-                          myPrint(x)
-                          cat(paste("\n\nResidual standard error: ", residualstd, " on ", dof, " degrees of freedom: ", sep = ""))
-                        }
-                      ))
+linreg <- setRefClass( "linreg",
+                       
+                       fields = list(
+                         formula = "formula",
+                         data = "data.frame",
+                         reg_Coef = "matrix",
+                         fit_Val = "matrix",
+                         res = "matrix" ,
+                         dof = "numeric",
+                         res_Var = "numeric",
+                         var_Beta = "matrix",
+                         t_Beta = "matrix",
+                         pvalue = "matrix",
+                         parse = "character",
+                         stand_res = "matrix",
+                         variance = "numeric"
+                       ),
+                       
+                       methods = list(
+                         initialize = function (formula, data)
+                         {
+                           c <- colnames(data)
+                           d <- all.vars(formula)
+                           stopifnot(d %in% c)
+                           stopifnot (is.data.frame(data))
+                           formula <<- formula
+                           data <<- data
+                           X <- model.matrix(formula, data)
+                           dep_y <- all.vars(formula)[1]
+                           y <- as.matrix(data[dep_y])
+                           parse <<- deparse(substitute(data))
+                           #Regressions coefficients
+                           reg_Coef <<- solve((t(X) %*% X)) %*% t(X) %*% y
+                           #X <- QR
+                           #Beta <- solve(R)%*%t(Q)%*%y
+                           #Fitted values
+                           fit_Val <<- X %*% reg_Coef
+                           #Residuals
+                           res <<- y - fit_Val
+                           #Degrees of freedom
+                           dof <<- nrow(X) - ncol(X)
+                           #Residual variance
+                           res_Var <<- as.numeric((t(res) %*% res) / dof)
+                           #Variance of regression coefficients
+                           var_Beta <<-
+                             res_Var * solve((t(X) %*% X))
+                           #t-values for each coefficient
+                           t_Beta <<- reg_Coef / sqrt(diag(var_Beta))
+                           #p values for reg coefficients
+                           pvalue <<- 2 * pt(abs(t_Beta), dof,lower.tail = FALSE)
+                           #variance value
+                           variance <<- round(sqrt(res_Var), 2)
+                           #standardised residual for plot2
+                           stand_res <<-
+                             sqrt(abs((res - mean(res)) / sqrt(res_Var)))
+                         },
+                         
+                         # Prints out the coefficients and coefficient names, similar as done by the lm class.
+                         print = function() {
+                           cat(paste("Call: \n"))
+                           cat(paste("linreg(formula = ",format(formula), ", data = ", parse, ")\n\n", sep = ""))
+                           cat(paste("Coefficients:\n"))
+                           coef <- structure(as.vector(reg_Coef), names= row.names(reg_Coef))
+                           own_print(coef)
+                         },
+                         #vector of residuals e
+                         resid = function(){
+                           cat("Returning vector of residuals:", "\n")
+                           return(as.vector(round(res,2)))
+                         },
+                         pred = function(){
+                           cat("Returning predicted values :", "\n")
+                           return(as.vector(round(fit_Val,2)))
+                         },
+                         coef = function(){
+                           cat("Returning coefficients as a vector:", "\n")
+                           return(as.vector(round(reg_Coef,2)))
+                         },
+                         plot = function(){
+                           library(ggplot2)
+                           library(ggThemeAssist)
+                           theme <-  theme(
+                             plot.background = element_rect(color = "black"),
+                             panel.background = element_rect(fill = "white", color = NA),
+                             panel.grid.major = element_line(color = "#1c1c19", size = 0.5),
+                             panel.grid.major.x = element_blank(),
+                             panel.grid.minor.x = element_blank(),
+                             panel.grid.major.y = element_blank(),
+                             panel.grid.minor.y = element_blank(),
+                             axis.line = element_line(color = "#1c1c19", size = 0.5),
+                             axis.text = element_text(color = "#1c1c19", size = 6),
+                             axis.ticks = element_line(color = "#38ccd6", size = 0.5),
+                             axis.title.x = element_text(color = "#38ccd6", size = 14,
+                                                         face = "bold"),
+                             axis.title.y = element_text(color = "#38ccd6", size = 14,
+                                                         face = "bold"),
+                             panel.grid.minor = element_line(color = "#1c1c19", size = 5),
+                             plot.caption = element_text(size = 10, hjust =
+                                                           0.5),
+                             plot.margin = unit(c(1.2, 1.2, 1.2, 1.2), "cm"),
+                             axis.text.x = element_text(size = 8),
+                             axis.text.y = element_text(size = 8)
+                           )
+                           
+                           
+                           
+                           plot1 <- ggplot(data.frame(fit_Val, res), aes(y=res, x=fit_Val)) + geom_point(shape=21, size=3, colour="black", fill="white")
+                           plot1 <- plot1 + theme
+                           plot1 <- plot1 + stat_summary(fun=median, colour="red", geom="line", aes(group = 1))
+                           
+                           plot1 <- plot1 + ggtitle("Residuals vs fitted") + xlab(paste("Fitted Values \n", "linreg(", format(formula), ")"))
+                           plot2 <- ggplot(data.frame(fit_Val, stand_res), aes(y=stand_res, x=fit_Val)) + geom_point(alpha = 0.6, shape=21, size=3, colour="black", fill="white")
+                           plot2 <- plot2 + theme
+                           plot2 <- plot2 + stat_summary(fun=median, colour="red", geom="line", aes(group = 1))
+                           plot2 <- plot2 + ggtitle("Scale-Location") + xlab(paste("Fitted Values \n", "linreg(", format(formula), ")"))
+                           plot2 <- plot2 + scale_x_continuous(breaks = seq(0.0, 1.5, by= 0.5))
+                           plotlist <- list(plot1, plot2)
+                           return(plotlist)
+                           
+                         },
+                         
+                         #summary()
+                         summary = function(){
+                           
+                           cat(paste("linreg(formula = ", format(formula), ", data = ", parse, ") :\n\n ", sep = ""))
+                           a<- setNames(as.data.frame(cbind(reg_Coef,as.matrix(sqrt(diag(var_Beta))),t_Beta, formatC(pvalue, format = "e", digits = 2), p_cal(pvalue))), c("Coefficients","Standard error","t-values", "p-values", ""))
+                           own_print(a)
+                           cat(paste("\n\n Residual standard error: ", sqrt(res_Var), " on ", dof, " degrees of freedom: ", sep = ""))
+                         }
+                         
+                       ))
 
-#' myPrint (custom print)
-#'
-#' Prints. This class can be used to print inside RC classes, which is not possible otherwise.
-#'
-#' @param x object
-#' @param stripoff column names will be stripped off.
-#'
-#' @return Nothing.
-myPrint = function(x, stripoff = FALSE) {
-  print(x)
+own_print<- function(a){
+  print(a)
 }
 
-#' p_star_cal
-#'
-#' Returns * based on p value
-#'
-#' @param p_value the p_value.
-#'
-#' @return Returns: Signif. codes:  0 "***" 0.001 "**" 0.01 "*" 0.05 "." 0.1 " " 1
-#'
-p_star_cal = function(p_value) {
-  x <- ifelse(p_value > 0.1, " ",
-              (ifelse(p_value > 0.05, " . ",
-                      (ifelse(p_value > 0.01, "*",
-                              (ifelse(p_value > 0.001, "**","***")))))))
+p_cal = function(p_val) {
+  x <- ifelse(p_val > 0.1, " ",
+              (ifelse(p_val > 0.05, " . ",
+                      (ifelse(p_val > 0.01, "*",
+                              (ifelse(p_val > 0.001, "**","***")))))))
   return(x)
-}
+}   
+
