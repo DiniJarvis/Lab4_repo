@@ -139,10 +139,12 @@ linreg <- setRefClass( "linreg",
                            plot1 <- plot1 + stat_summary(fun=median, colour="red", geom="line", aes(group = 1))
                            
                            plot1 <- plot1 + ggtitle("Residuals vs fitted") + xlab(paste("Fitted Values \n", "linreg(", format(formula), ")"))
+                           plot1 <- plot1 + ylab("Residuals")
                            plot2 <- ggplot(data.frame(fit_Val, stand_res), aes(y=stand_res, x=fit_Val)) + geom_point(alpha = 0.6, shape=21, size=3, colour="black", fill="white")
                            plot2 <- plot2 + theme
                            plot2 <- plot2 + stat_summary(fun=median, colour="red", geom="line", aes(group = 1))
                            plot2 <- plot2 + ggtitle("Scale-Location") + xlab(paste("Fitted Values \n", "linreg(", format(formula), ")"))
+                           plot2 <- plot2 + ylab(expression(bold(sqrt("Standardized Residuals"))))
                            plot2 <- plot2 + scale_x_continuous(breaks = seq(0.0, 1.5, by= 0.5))
                            plotlist <- list(plot1, plot2)
                            return(plotlist)
