@@ -4,7 +4,7 @@
 \name{linreg-class}
 \alias{linreg-class}
 \alias{linreg}
-\title{A RC class used to compute the Linear Regression using OLS}
+\title{A RC class to handle the Linear Regression using Ordinary Linear Algebra}
 \arguments{
 \item{formula}{A Formula.}
 
@@ -14,7 +14,7 @@
 nothing
 }
 \description{
-This class contains various methods.
+This class contains various methods to handle special functions.
 }
 \details{
 Package Description

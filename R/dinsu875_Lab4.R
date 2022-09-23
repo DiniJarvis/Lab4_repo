@@ -1,6 +1,6 @@
-#' A RC class used to compute the Linear Regression using OLS
+#' A RC class to handle the Linear Regression using Ordinary Linear Algebra
 #'
-#' This class contains various methods.
+#' This class contains various methods to handle special functions.
 #' 
 #' Package Description 
 #' 
@@ -153,7 +153,7 @@ linreg <- setRefClass( "linreg",
                          summary = function(){
                            
                            cat(paste("linreg(formula = ", format(formula), ", data = ", parse, ") :\n\n ", sep = ""))
-                           a<- setNames(as.data.frame(cbind(reg_Coef,as.matrix(sqrt(diag(var_Beta))),t_Beta, formatC(pvalue, format = "e", digits = 2), p_cal(pvalue))), c("Coefficients","Standard error","t-values", "p-values", ""))
+                           a<- setNames(as.data.frame(cbind(reg_Coef,as.matrix(sqrt(diag(var_Beta))),t_Beta, formatC(pvalue, format = "e", digits = 2), p_calc(pvalue))), c("Coefficients","Standard error","t-values", "p-values", ""))
                            own_print(a)
                            cat(paste("\n\n Residual standard error: ", sqrt(res_Var), " on ", dof, " degrees of freedom: ", sep = ""))
                          }
@@ -164,7 +164,7 @@ own_print<- function(a){
   print(a)
 }
 
-p_cal = function(p_val) {
+p_calc = function(p_val) {
   x <- ifelse(p_val > 0.1, " ",
               (ifelse(p_val > 0.05, " . ",
                       (ifelse(p_val > 0.01, "*",
