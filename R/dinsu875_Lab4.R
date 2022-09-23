@@ -49,9 +49,7 @@ linreg <- setRefClass( "linreg",
                        methods = list(
                          initialize = function (formula, data)
                          {
-                           c <- colnames(data)
-                           d <- all.vars(formula)
-                           stopifnot(d %in% c)
+                           stopifnot(all.vars(formula) %in% colnames(data))
                            stopifnot (is.data.frame(data))
                            formula <<- formula
                            data <<- data
